@@ -97,6 +97,7 @@ _JS_TO_HID_KEYCODES = {
     89: 0x1c,  # y
     90: 0x1d,  # z
     91: keyboard.KEYCODE_LEFT_META,
+    94: 0x5c,  # \ (UK)
     96: 0x62,  # Numpad 0
     97: 0x59,  # Numpad 1
     98: 0x5a,  # Numpad 2
