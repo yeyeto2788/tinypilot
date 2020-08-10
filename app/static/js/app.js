@@ -359,6 +359,8 @@ function sendPastedText(pastedText, updateCards) {
   }
 }
 
+document.onload = document.getElementById("app").focus();
+
 document.getElementById("app").addEventListener("keydown", onKeyDown);
 document.getElementById("app").addEventListener("keyup", onKeyUp);
 document
