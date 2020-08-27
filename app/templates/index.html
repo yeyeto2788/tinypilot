@@ -15,7 +15,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}" />
   </head>
   <body>
-    <div id="app">
+    <div id="app" tabindex="0">
       <div class="navbar">
         <p class="brand">TinyPilot</p>
         <div class="nav-items">
@@ -122,6 +122,10 @@
                 Meta/OS
               </button>
 
+              <button id="paste-btn" class="btn paste-btn" type="button">
+                Paste
+              </button>
+
               <div class="tooltip tooltip-top">
                 <img class="question-icon" src="/img/question-icon.svg" />
                 <div class="tooltip-text">
@@ -131,17 +135,25 @@
                   </p>
                   <p>
                     Press these buttons to send the corresponding modifier keys
-                    on your next keystroke.
+                    on your next keystroke. Use the Paste button to send blocks
+                    of text from your clipboard.
                   </p>
                 </div>
-              </div>
+
             </div>
           </div>
         </div>
       </div>
     </div>
 
+    <div id="paste-overlay" contenteditable="true">
+      <p id="paste-entry">
+        Press Ctrl+V / Cmd+V to paste or any other key to cancel&nbsp;
+      </p>
+    </div>
+
     <script src="/third-party/socket.io/2.3.0/socket.io.js"></script>
+    <script src="/js/keycodes.js"></script>
     <script src="/js/app.js"></script>
   </body>
 </html>
