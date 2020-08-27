@@ -229,6 +229,7 @@ function onSocketDisconnect(reason) {
 }
 
 function onKeyDown(evt) {
+  console.log("onKeyDown");
   if (!connectedToServer) {
     return;
   }
@@ -384,7 +385,7 @@ function sendPastedText(pastedText) {
 document.onload = document.getElementById("app").focus();
 
 document.getElementById("app").addEventListener("keydown", onKeyDown);
-document.getElementById("app").addEventListener("keyup", onKeyUp);
+//document.getElementById("app").addEventListener("keyup", onKeyUp);
 
 // Forward all mouse activity that occurs over the image of the remote screen.
 const screenImg = document.getElementById("remote-screen-img");
