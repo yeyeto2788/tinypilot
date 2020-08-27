@@ -3,6 +3,10 @@ body {
   background: rgb(114, 114, 114);
 }
 
+#app {
+  min-height: 100vh;
+}
+
 .container {
   display: flex;
   flex-direction: column;
