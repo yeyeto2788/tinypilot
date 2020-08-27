@@ -267,6 +267,7 @@ function onManualModifierButtonClicked(evt) {
   } else {
     evt.target.classList.add("pressed");
   }
+  document.getElementById("app").focus();
 }
 
 function onDisplayHistoryChanged(evt) {
@@ -278,8 +279,110 @@ function onDisplayHistoryChanged(evt) {
   }
 }
 
-document.querySelector("body").addEventListener("keydown", onKeyDown);
-document.querySelector("body").addEventListener("keyup", onKeyUp);
+function onKeyDownInPasteMode(e) {
+  // Return false on Ctrl by itself because otherwise we capture the
+  // event before the paste event can occur.
+  if (e.keyCode === 17 || e.keyCode === 86) {
+    return false;
+  }
+  // Treat any other key as cancellation of the paste.
+  hideElementById("paste-overlay");
+  // Return control to normal input.
+  document.getElementById("app").focus();
+}
+
+// Place the caret (cursor) in the paste div so that we can listen for paste
+// events.
+function placeCaretInPasteOverlay() {
+  const pasteOverlay = document.getElementById("paste-overlay");
+  // This is largely copy-pasted from
+  // https://stackoverflow.com/questions/4233265
+  pasteOverlay.focus();
+
+  // Move cursor to the end of the text.
+  const range = document.createRange();
+  range.selectNodeContents(pasteOverlay);
+  range.collapse(false);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+function onPaste(e) {
+  var clipboardData, pastedData;
+
+  // Stop data actually being pasted into div
+  e.stopPropagation();
+  e.preventDefault();
+
+  // Get pasted data via clipboard API
+  clipboardData = e.clipboardData || window.clipboardData;
+  pastedData = clipboardData.getData("Text");
+  sendPastedText(pastedData, /*updateCards =*/ true);
+  hideElementById("paste-overlay");
+}
+
+function sendPastedText(pastedText, updateCards) {
+  for (let i = 0; i < pastedText.length; i++) {
+    // We need to identify keys which are typed with modifiers and send Shift +
+    // the lowercase key.
+    let isUpperCase = /^[A-Z]/;
+    let modifiedSymbols = '¬!"£$%^&*()_+{}|<>?:@~';
+    if (
+      isUpperCase.test(pastedText[i]) ||
+      modifiedSymbols.indexOf(pastedText[i]) >= 0
+    ) {
+      toggleManualModifier("shift");
+      if (updateCards) {
+        addKeyCard("Shift", keystrokeId);
+        processingQueue.push(keystrokeId);
+        keystrokeId++;
+      }
+    }
+    keyboardSocket.emit("keystroke", {
+      metaKey: manualModifiers.meta,
+      altKey: manualModifiers.alt,
+      shiftKey: manualModifiers.shift,
+      ctrlKey: manualModifiers.ctrl,
+      key: pastedText[i],
+      keyCode: keyCodeLookup[pastedText[i].toLowerCase()],
+      location: null,
+    });
+    if (updateCards) {
+      addKeyCard(pastedText[i], keystrokeId);
+      processingQueue.push(keystrokeId);
+      keystrokeId++;
+    }
+    if (
+      isUpperCase.test(pastedText[i]) ||
+      modifiedSymbols.indexOf(pastedText[i]) >= 0
+    ) {
+      clearManualModifiers();
+    }
+
+    // Make sure all key cards are formatted correctly. For some reason,
+    // pasting a lot of content makes the "processed-key-card" class not
+    // get set on some pasted key-presses. So, as a workaround, we'll find
+    // all those that don't have that class and add it.
+    const recentKeysDiv = document.getElementById("recent-keys");
+    const cards = recentKeysDiv.children;
+    for (let i = 0; i < cards.length; i++) {
+      const card = cards[i];
+      if (!card.classList.contains("processed-key-card")) {
+        // Not ideal here as we're essentially forcing a successful status for
+        // the receipt of the pasted key press.
+        card.classList.add("processed-key-card");
+      }
+    }
+  }
+  // Give focus back to the app for normal text input.
+  document.getElementById("app").focus();
+}
+
+document.onload = document.getElementById("app").focus();
+
+document.getElementById("app").addEventListener("keydown", onKeyDown);
+document.getElementById("app").addEventListener("keyup", onKeyUp);
 document
   .getElementById("display-history-checkbox")
   .addEventListener("change", onDisplayHistoryChanged);
@@ -302,6 +405,18 @@ document
 document.getElementById("cancel-shutdown").addEventListener("click", () => {
   hideElementById("shutdown-confirmation-panel");
 });
+document.getElementById("paste-btn").addEventListener("click", () => {
+  showElementById("paste-overlay", "flex");
+  placeCaretInPasteOverlay();
+});
+document.getElementById("paste-overlay").addEventListener("paste", onPaste);
+document
+  .getElementById("paste-overlay")
+  .addEventListener("click", () => hideElementById("paste-overlay"));
+document
+  .getElementById("paste-overlay")
+  .addEventListener("keydown", onKeyDownInPasteMode);
+
 for (const button of document.getElementsByClassName("manual-modifier-btn")) {
   button.addEventListener("click", onManualModifierButtonClicked);
 }
