@@ -8,7 +8,7 @@ handler = logging.StreamHandler()
 formatter = logging.Formatter(
     '%(asctime)s %(name)-15s %(levelname)-4s %(message)s', '%Y-%m-%d %H:%M:%S')
 handler.setFormatter(formatter)
-root_logger.addHandler(flask.logging.default_handler)
+root_logger.addHandler(handler)
 root_logger.setLevel(logging.DEBUG)
 
 logger = logging.getLogger(__name__)
@@ -19,10 +19,12 @@ def f(sleep_seconds):
     time.sleep(sleep_seconds)
     print('I am awake')
     logger.info('Done sleeping')
+    with open('done.txt', 'w') as d:
+      d.write('done!')
 
 
 if __name__ == '__main__':
-    logger.inf
+    logger.info('Starting background process')
     p = multiprocessing.Process(target=f, args=(5,))
     p.start()
     p.join()
