@@ -1,5 +1,8 @@
-import multiprocessing
+#!/usr/bin/env python3
+
 import logging
+import multiprocessing
+import signal
 import time
 
 
@@ -14,6 +17,7 @@ root_logger.setLevel(logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def f(sleep_seconds):
+    signal.signal(signal.SIGHUP, signal.SIG_IGN)
     logger.info("Sleeping for %d seconds", sleep_seconds)
     print('I am going to sleep')
     time.sleep(sleep_seconds)
@@ -25,6 +29,6 @@ def f(sleep_seconds):
 
 if __name__ == '__main__':
     logger.info('Starting background process')
-    p = multiprocessing.Process(target=f, args=(5,))
+    p = multiprocessing.Process(target=f, args=(20,))
     p.start()
-    p.join()
+    #p.join()
